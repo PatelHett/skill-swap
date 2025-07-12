@@ -7,6 +7,7 @@ interface SwapRequestCardProps {
   skillsOffered: string[];
   skillWanted: string;
   status: 'Pending' | 'Accepted' | 'Rejected';
+  isAdmin?: boolean;
   onAccept?: () => void;
   onReject?: () => void;
 }
@@ -23,6 +24,7 @@ const SwapRequestCard: React.FC<SwapRequestCardProps> = ({
   rating,
   skillsOffered,
   skillWanted,
+  isAdmin,
   status,
   onAccept,
   onReject,
@@ -73,7 +75,7 @@ const SwapRequestCard: React.FC<SwapRequestCardProps> = ({
         >
           {status}
         </span>
-        {status === 'Pending' && (
+        {status === 'Pending' && !isAdmin && (
           <div className="flex md:flex-col flex-row gap-2 w-full md:w-auto">
             <button
               className="px-4 py-1 rounded-full bg-green-50 text-green-700 border border-green-300 text-sm font-medium shadow-sm hover:bg-green-100 hover:text-green-800 focus:outline-none focus:ring-2 focus:ring-green-200 transition"

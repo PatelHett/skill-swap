@@ -35,7 +35,7 @@ const ShowSkillCard: React.FC<ShowSkillCardProps> = ({
         </div>
         <div className="flex flex-wrap items-center mt-2 space-x-2">
           <span className="text-gray-700 text-sm font-medium">Skills Offered:</span>
-          {skillsOffered.length > 0 ? (
+          {skillsOffered?.length > 0 ? (
             skillsOffered.map(skill => (
               <span key={skill} className="inline-block bg-[#E3F2FD] text-[#0A192F] rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2 border border-[#2196F3]">
                 {skill}

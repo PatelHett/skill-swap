@@ -4,6 +4,7 @@ export interface User {
   username: string;
   email: string;
   profilePhoto?: string;
+  location?: string;
   skillsOffered: string[];
   skillsWanted: string[];
   availability: 'weekends' | 'weekdays' | 'evenings' | 'custom';

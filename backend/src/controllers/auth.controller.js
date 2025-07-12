@@ -510,6 +510,37 @@ const updateUserProfile = async (req, res, next) => {
   }
 };
 
+const getCurrentUser = async (req, res, next) => {
+  log.info("getCurrentUser endpoint hit");
+
+  try {
+    const userId = req.user?._id || req.user?.id;
+
+    if (!userId) {
+      log.warn("Missing user ID in getCurrentUser (unauthenticated)");
+      return next(new ApiError(401, "Unauthorized"));
+    }
+
+    const user = await User.findById(userId)
+      .select("-password -resetCode -__v")
+      .populate("skillsOffered skillsWanted");
+
+    if (!user) {
+      log.warn(`User not found with ID: ${userId}`);
+      return next(new ApiError(404, "User not found"));
+    }
+
+    return res.status(200).json({
+      success: true,
+      user: user,
+    });
+  } catch (error) {
+    log.error("Error in getCurrentUser", error);
+    next(error);
+  }
+};
+
+
 export const auth = {
   registerUser,
   loginUser,
@@ -523,4 +554,5 @@ export const auth = {
   toggleProfileVisibility,
   getUserProfile,
   updateUserProfile,
+  getCurrentUser,
 };
