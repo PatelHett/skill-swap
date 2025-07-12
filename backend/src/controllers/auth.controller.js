@@ -2,6 +2,8 @@ import { log, ApiError, getCookieOptions } from "../utils/util.js";
 import { User, RefreshToken } from "../models/model.js";
 import { userValidationSchema } from "../validators/validators.js";
 import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
+import bcrypt from "bcrypt";
 
 const checkUsername = async (req, res, next) => {
   log.info("checkUsername endpoint hit");
@@ -390,6 +392,43 @@ const forgotUsername = async (req, res, next) => {
   }
 };
 
+const toggleProfileVisibility = async (req, res, next) => {
+  log.info("toggleProfileVisibility endpoint hit");
+
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      log.warn("Missing user ID in toggleProfileVisibility");
+      return next(new ApiError(401, "Unauthorized"));
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      log.warn(`User not found with ID: ${userId}`);
+      return next(new ApiError(404, "User not found"));
+    }
+
+    // Flip the isPublic flag
+    user.isPublic = !user.isPublic;
+
+    await user.save();
+
+    log.info(`User ${user.email} visibility set to ${user.isPublic}`);
+
+    return res.status(200).json({
+      message: `Profile visibility updated to ${
+        user.isPublic ? "public" : "private"
+      }`,
+      isPublic: user.isPublic,
+    });
+  } catch (error) {
+    log.error("Error in toggleProfileVisibility", error);
+    next(error);
+  }
+};
+
 export const auth = {
   registerUser,
   loginUser,
@@ -400,4 +439,5 @@ export const auth = {
   resetPassword,
   verifyResetCode,
   forgotUsername,
+  toggleProfileVisibility,
 };
