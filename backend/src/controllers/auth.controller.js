@@ -217,9 +217,171 @@ const logoutUser = async (req, res, next) => {
 };
 
 const forgotPassword = async (req, res, next) => {
+  log.info("forgotPassword endpoint hit");
+
   try {
+    const { email } = req.body;
+
+    if (!email || typeof email !== "string") {
+      log.warn("Invalid or missing email");
+      return next(new ApiError(400, "Email is required"));
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      log.warn(`No user found with email ${email}`);
+      return res.status(200).json({
+        message: "If your email is registered, a reset code has been sent.",
+      });
+    }
+
+    // Generate 6-digit reset code
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    user.resetCode = resetCode;
+    await user.save();
+
+    // Set up nodemailer transporter
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: `"Skill Swap" <${process.env.SMTP_USER}>`,
+      to: user.email,
+      subject: "Password Reset Code",
+      text: `Your password reset code is: ${resetCode}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    log.info(`Reset code sent to ${user.email}`);
+
+    return res.status(200).json({
+      message: "If your email is registered, a reset code has been sent.",
+    });
   } catch (error) {
-    log.error("Unexpected error in forgot password", error);
+    log.error("Unexpected error in forgotPassword", error);
+    next(error);
+  }
+};
+
+const verifyResetCode = async (req, res, next) => {
+  log.info("verifyResetCode endpoint hit");
+
+  try {
+    const { email, code } = req.body;
+
+    if (!email || !code) {
+      log.warn("Missing email or code in request");
+      return next(new ApiError(400, "Email and reset code are required"));
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user || user.resetCode !== code) {
+      log.warn(`Invalid reset code attempt for email: ${email}`);
+      return next(new ApiError(400, "Invalid or expired reset code"));
+    }
+
+    log.info(`Reset code verified for user ${email}`);
+    return res.status(200).json({
+      message: "Reset code verified successfully",
+    });
+  } catch (error) {
+    log.error("Unexpected error in verifyResetCode", error);
+    next(error);
+  }
+};
+
+const resetPassword = async (req, res, next) => {
+  log.info("resetPassword endpoint hit");
+
+  try {
+    const { email, code, newPassword } = req.body;
+
+    if (!email || !code || !newPassword) {
+      log.warn("Missing required fields in reset-password");
+      return next(
+        new ApiError(400, "Email, code, and new password are required")
+      );
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user || user.resetCode !== code) {
+      log.warn(`Invalid reset attempt for email: ${email}`);
+      return next(new ApiError(400, "Invalid or expired reset code"));
+    }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+
+    // Clear the reset code
+    user.resetCode = undefined;
+
+    await user.save();
+
+    log.info(`Password reset successful for user ${email}`);
+    return res.status(200).json({
+      message: "Password updated successfully. Please login.",
+    });
+  } catch (error) {
+    log.error("Unexpected error in resetPassword", error);
+    next(error);
+  }
+};
+
+const forgotUsername = async (req, res, next) => {
+  log.info("forgotUsername endpoint hit");
+
+  try {
+    const { email } = req.body;
+
+    if (!email || typeof email !== "string") {
+      log.warn("Invalid or missing email");
+      return next(new ApiError(400, "Email is required"));
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      log.warn(`No user found with email ${email}`);
+      return res.status(200).json({
+        message: "If your email is registered, your username has been sent.",
+      });
+    }
+
+    // Setup transporter
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: `"Skill Swap" <${process.env.SMTP_USER}>`,
+      to: user.email,
+      subject: "Your Username",
+      text: `Hi there,\n\nHere is your username: ${user.username}\n\nUse it to log into your account.\n\n- Skill Swap Team`,
+    };
+
+    await transporter.sendMail(mailOptions);
+    log.info(`Username sent to ${user.email}`);
+
+    return res.status(200).json({
+      message: "If your email is registered, your username has been sent.",
+    });
+  } catch (error) {
+    log.error("Unexpected error in forgotUsername", error);
     next(error);
   }
 };
@@ -230,4 +392,8 @@ export const auth = {
   refreshAccessToken,
   logoutUser,
   checkUsername,
+  forgotPassword,
+  resetPassword,
+  verifyResetCode,
+  forgotUsername,
 };
