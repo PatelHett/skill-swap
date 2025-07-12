@@ -13,6 +13,7 @@ import './App.css';
 import Profile from './pages/Profile';
 import SwapRequestsPage from './pages/SwapRequestsPage';
 import ShowSkills from './pages/ShowSkills';
+import MonitorSwaps from './pages/admin/MonitorSwaps';
 
 // Temporary Dashboard component for authenticated users
 const Dashboard = () => {
