@@ -40,3 +40,49 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Users API functions
+export interface User {
+  _id: string;
+  username: string;
+  email: string;
+  location?: string;
+  profilePhoto?: string;
+  skillsOffered: Array<{
+    _id: string;
+    name: string;
+    category: string;
+  }>;
+  skillsWanted: Array<{
+    _id: string;
+    name: string;
+    category: string;
+  }>;
+  availability: string;
+  isPublic: boolean;
+  role: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UsersResponse {
+  users: User[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    total: number;
+    limit: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
+export const getUsers = async (params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  availability?: string;
+}): Promise<UsersResponse> => {
+  const response = await api.get('/users', { params });
+  return response.data.data;
+};
