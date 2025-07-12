@@ -139,6 +139,8 @@ const loginUser = async (req, res, next) => {
         success: true,
         message: "Login successful",
         user: loggedUser,
+        accessToken: accessToken, // Also return token in response for API usage
+        refreshToken: refreshToken,
       });
   } catch (error) {
     log.error("Unexpected error in loginUser", error);
