@@ -24,6 +24,11 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    banned: {
+      type: Boolean,
+      default: false,
+    },
+    resetCode: String, // Added for password reset
   },
   { timestamps: true }
 );

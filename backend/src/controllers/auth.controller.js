@@ -297,6 +297,7 @@ const verifyResetCode = async (req, res, next) => {
 
     log.info(`Reset code verified for user ${email}`);
     return res.status(200).json({
+      success: true,
       message: "Reset code verified successfully",
     });
   } catch (error) {
@@ -336,6 +337,7 @@ const resetPassword = async (req, res, next) => {
 
     log.info(`Password reset successful for user ${email}`);
     return res.status(200).json({
+      success: true,
       message: "Password updated successfully. Please login.",
     });
   } catch (error) {
