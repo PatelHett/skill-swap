@@ -94,10 +94,10 @@ const loginUser = async (req, res, next) => {
       return next(new ApiError(400, error.details[0].message));
     }
 
-    const { email, password, username } = req.body;
+    const { email, password } = req.body;
 
     const user = await User.findOne({
-      $or: [{ email }, { username }],
+      $or: [{ email }],
     });
 
     if (!user) {
