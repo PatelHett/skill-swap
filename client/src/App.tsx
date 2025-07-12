@@ -10,6 +10,9 @@ import Register from './components/auth/Register';
 import ForgotPassword from './components/auth/ForgotPassword';
 import { useAppSelector } from './hooks/redux';
 import './App.css';
+import Profile from './pages/Profile';
+import SwapRequestsPage from './pages/SwapRequestsPage';
+import ShowSkills from './pages/ShowSkills';
 
 // Temporary Dashboard component for authenticated users
 const Dashboard = () => {
@@ -64,6 +67,22 @@ const AuthRoutes = () => {
        path="*" 
        element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} 
      />
+     <Route 
+        path="/profile" 
+        element={isAuthenticated ? <Profile /> : <Navigate to="/login" replace />} 
+      />
+      <Route 
+        path="/show-user-profile" 
+        element={isAuthenticated ? <Profile /> : <Navigate to="/login" replace />} 
+      />
+      <Route 
+          path="/browse-skills" 
+          element={isAuthenticated ? <ShowSkills /> : <Navigate to="/login" replace />} 
+      />
+      <Route 
+          path="/swap-request"
+          element={isAuthenticated ? <SwapRequestsPage /> : <Navigate to="/login" replace />}
+      />
    </Routes>
  );
 };

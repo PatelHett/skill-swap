@@ -1,9 +1,11 @@
 // src/components/auth/Login.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
+import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import { loginUser, clearError } from '../../store/authSlice';
 
 interface LoginFormData {
   email: string;
@@ -12,7 +14,9 @@ interface LoginFormData {
 
 const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
 
   const {
     register,
@@ -20,17 +24,34 @@ const Login: React.FC = () => {
     formState: { errors },
   } = useForm<LoginFormData>();
 
-  const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
-    try {
-      // TODO: Integrate with Redux and backend
-      console.log('Login data:', data);
-      toast.success('Login successful!');
-    } catch (error) {
-      toast.error('Login failed. Please try again.');
-    } finally {
-      setIsLoading(false);
+  // Clear error when component mounts
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
+  // Redirect if already authenticated (only on mount, not on auth state changes during login)
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      navigate('/dashboard');
     }
+  }, [isAuthenticated, navigate, isLoading]);
+
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      await dispatch(loginUser(data)).unwrap();
+      toast.success('Login successful!');
+      // Navigation will be handled by the useEffect above
+    } catch (error: any) {
+      // Error toast will be shown automatically
+      console.error('Login error:', error);
+      toast.error(error || 'Login failed. Please check your credentials.');
+    }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleSubmit(onSubmit)(e);
   };
 
   return (
@@ -44,7 +65,11 @@ const Login: React.FC = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
+          <form 
+            onSubmit={handleFormSubmit}
+            className="mt-8 space-y-6"
+            noValidate
+          >
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-[#333333] mb-2">
@@ -63,8 +88,12 @@ const Login: React.FC = () => {
                     },
                   })}
                   type="email"
+                  id="email"
+                  name="email"
+                  autoComplete="email"
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2196F3] focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                   placeholder="Enter your email"
+                  disabled={isLoading}
                 />
               </div>
               {errors.email && (
@@ -90,13 +119,21 @@ const Login: React.FC = () => {
                     },
                   })}
                   type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  name="password"
+                  autoComplete="current-password"
                   className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2196F3] focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                   placeholder="Enter your password"
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowPassword(!showPassword);
+                  }}
+                  disabled={isLoading}
                 >
                   {showPassword ? (
                     <FiEyeOff className="h-5 w-5 text-gray-400 hover:text-[#2196F3] transition-colors" />
@@ -118,6 +155,7 @@ const Login: React.FC = () => {
                   name="remember-me"
                   type="checkbox"
                   className="h-4 w-4 text-[#2196F3] focus:ring-[#2196F3] border-gray-300 rounded"
+                  disabled={isLoading}
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-[#333333]">
                   Remember me
@@ -135,7 +173,7 @@ const Login: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-[#0A192F] hover:bg-[#112240] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2196F3] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-[#0A192F] hover:bg-[#112240] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2196F3] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 disabled:transform-none"
             >
               {isLoading ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
