@@ -46,7 +46,7 @@ const AuthRoutes = () => {
    <Routes>
      <Route 
        path="/login" 
-       element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} 
+       element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <ShowSkills />} 
      />
      <Route 
        path="/register" 
