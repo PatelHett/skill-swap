@@ -33,7 +33,7 @@ A modern web application that enables users to exchange skills through a communi
 
 ```css
 Primary Color: #0A192F (Dark Navy)
-Accent Color: #64FFDA (Bright Teal)
+Accent Color: #2196F3 (Bright Teal)
 Background: #FFFFFF (White)
 Text Color: #333333 (Dark Gray)
 Font: Inter, sans-serif
