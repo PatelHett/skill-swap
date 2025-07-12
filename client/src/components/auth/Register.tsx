@@ -1,9 +1,12 @@
 // src/components/auth/Register.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
-import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+import { Link, useNavigate } from 'react-router-dom';
+import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiCheck, FiX, FiLoader } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
+import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import { registerUser, clearError } from '../../store/authSlice';
+import { useUsernameCheck } from '../../hooks/useUsernameCheck';
 
 interface RegisterFormData {
   username: string;
@@ -16,7 +19,9 @@ interface RegisterFormData {
 const Register: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
 
   const {
     register,
@@ -26,22 +31,81 @@ const Register: React.FC = () => {
   } = useForm<RegisterFormData>();
 
   const password = watch('password');
+  const username = watch('username');
+
+  // Use the username check hook with debouncing
+  const usernameCheck = useUsernameCheck(username, 500);
+
+  // Clear error when component mounts
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   const onSubmit = async (data: RegisterFormData) => {
-    setIsLoading(true);
+    // Check if username is available before submitting
+    if (usernameCheck.isAvailable === false) {
+      toast.error('Please choose a different username');
+      return;
+    }
+
+    if (usernameCheck.isChecking) {
+      toast.error('Please wait while we check username availability');
+      return;
+    }
+
     try {
-      // TODO: Integrate with Redux and backend
-      console.log('Register data:', data);
-      toast.success('Registration successful!');
-    } catch (error) {
-      toast.error('Registration failed. Please try again.');
-    } finally {
-      setIsLoading(false);
+      // Filter out confirmPassword and acceptTerms before sending to API
+      const { confirmPassword, acceptTerms, ...apiData } = data;
+      
+      await dispatch(registerUser(apiData)).unwrap();
+      toast.success('Registration successful! Please login with your credentials.');
+      navigate('/login');
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      toast.error(error || 'Registration failed. Please try again.');
     }
   };
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleSubmit(onSubmit)(e);
+  };
+
+  // Function to get username input styling based on availability
+  const getUsernameInputClasses = () => {
+    let baseClasses = "block w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white";
+    
+    if (usernameCheck.isAvailable === true) {
+      return `${baseClasses} border-green-300 focus:ring-green-500`;
+    } else if (usernameCheck.isAvailable === false) {
+      return `${baseClasses} border-red-300 focus:ring-red-500`;
+    } else {
+      return `${baseClasses} border-gray-300 focus:ring-[#2196F3]`;
+    }
+  };
+
+  // Function to render username status icon
+  const renderUsernameStatusIcon = () => {
+    if (usernameCheck.isChecking) {
+      return <FiLoader className="h-5 w-5 text-blue-500 animate-spin" />;
+    } else if (usernameCheck.isAvailable === true) {
+      return <FiCheck className="h-5 w-5 text-green-500" />;
+    } else if (usernameCheck.isAvailable === false) {
+      return <FiX className="h-5 w-5 text-red-500" />;
+    }
+    return null;
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0A192F] to-[#112240] px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0A192F] to-[#112240] px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="bg-white rounded-2xl shadow-2xl p-8 transition-all duration-300 hover:shadow-3xl">
           {/* Header */}
@@ -51,7 +115,11 @@ const Register: React.FC = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
+          <form 
+            onSubmit={handleFormSubmit}
+            className="mt-8 space-y-5"
+            noValidate
+          >
             {/* Username Field */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-[#333333] mb-2">
@@ -72,14 +140,43 @@ const Register: React.FC = () => {
                       value: 20,
                       message: 'Username must be less than 20 characters',
                     },
+                    pattern: {
+                      value: /^[a-zA-Z0-9_]+$/,
+                      message: 'Username can only contain letters, numbers, and underscores',
+                    },
+                    validate: () => {
+                      if (usernameCheck.isAvailable === false) {
+                        return 'Username is already taken';
+                      }
+                      return true;
+                    },
                   })}
                   type="text"
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2196F3] focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                  id="username"
+                  name="username"
+                  autoComplete="username"
+                  className={getUsernameInputClasses()}
                   placeholder="Choose a username"
+                  disabled={isLoading}
                 />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  {renderUsernameStatusIcon()}
+                </div>
               </div>
               {errors.username && (
                 <p className="mt-1 text-sm text-red-600">{errors.username.message}</p>
+              )}
+              {/* Username availability message */}
+              {!errors.username && usernameCheck.message && username && username.length >= 3 && (
+                <p className={`mt-1 text-sm ${
+                  usernameCheck.isAvailable === true 
+                    ? 'text-green-600' 
+                    : usernameCheck.isAvailable === false 
+                    ? 'text-red-600' 
+                    : 'text-gray-600'
+                }`}>
+                  {usernameCheck.message}
+                </p>
               )}
             </div>
 
@@ -101,8 +198,12 @@ const Register: React.FC = () => {
                     },
                   })}
                   type="email"
+                  id="email"
+                  name="email"
+                  autoComplete="email"
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2196F3] focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                   placeholder="Enter your email"
+                  disabled={isLoading}
                 />
               </div>
               {errors.email && (
@@ -132,13 +233,21 @@ const Register: React.FC = () => {
                     },
                   })}
                   type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  name="password"
+                  autoComplete="new-password"
                   className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2196F3] focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                   placeholder="Create a password"
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowPassword(!showPassword);
+                  }}
+                  disabled={isLoading}
                 >
                   {showPassword ? (
                     <FiEyeOff className="h-5 w-5 text-gray-400 hover:text-[#2196F3] transition-colors" />
@@ -167,13 +276,21 @@ const Register: React.FC = () => {
                     validate: (value) => value === password || 'Passwords do not match',
                   })}
                   type={showConfirmPassword ? 'text' : 'password'}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  autoComplete="new-password"
                   className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2196F3] focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                   placeholder="Confirm your password"
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowConfirmPassword(!showConfirmPassword);
+                  }}
+                  disabled={isLoading}
                 >
                   {showConfirmPassword ? (
                     <FiEyeOff className="h-5 w-5 text-gray-400 hover:text-[#2196F3] transition-colors" />
@@ -188,19 +305,34 @@ const Register: React.FC = () => {
             </div>
 
             {/* Terms and Conditions */}
-            <div className="flex items-center">
+            <div className="flex items-start">
               <input
                 {...register('acceptTerms', {
                   required: 'You must accept the terms and conditions',
                 })}
                 id="accept-terms"
                 type="checkbox"
-                className="h-4 w-4 text-[#2196F3] focus:ring-[#2196F3] border-gray-300 rounded"
+                className="h-4 w-4 text-[#2196F3] focus:ring-[#2196F3] border-gray-300 rounded mt-1"
+                disabled={isLoading}
               />
               <label htmlFor="accept-terms" className="ml-2 block text-sm text-[#333333]">
                 I agree to the{' '}
-                <Link to="/terms" className="text-[#2196F3] hover:text-[#0A192F] transition-colors">
+                <Link 
+                  to="/terms" 
+                  className="text-[#2196F3] hover:text-[#0A192F] transition-colors underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   Terms and Conditions
+                </Link>
+                {' '}and{' '}
+                <Link 
+                  to="/privacy" 
+                  className="text-[#2196F3] hover:text-[#0A192F] transition-colors underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Privacy Policy
                 </Link>
               </label>
             </div>
@@ -211,8 +343,8 @@ const Register: React.FC = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-[#0A192F] hover:bg-[#112240] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2196F3] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105"
+              disabled={isLoading || usernameCheck.isChecking || usernameCheck.isAvailable === false}
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-[#0A192F] hover:bg-[#112240] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2196F3] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 disabled:transform-none"
             >
               {isLoading ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>

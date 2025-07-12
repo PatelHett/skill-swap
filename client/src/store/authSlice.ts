@@ -1,45 +1,54 @@
 // src/store/authSlice.ts
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { api } from '../utils/api';
-import type { User, AuthState, LoginCredentials, RegisterCredentials } from '../types/auth';
+import type { User, AuthState, LoginCredentials, RegisterCredentials, LoginResponse } from '../types/auth';
 
 const initialState: AuthState = {
   user: null,
-  token: localStorage.getItem('token'),
+  token: localStorage.getItem('accessToken'),
   isLoading: false,
   error: null,
-  isAuthenticated: !!localStorage.getItem('token'),
+  isAuthenticated: !!localStorage.getItem('accessToken'),
 };
 
-// Async thunks for API calls
+// Login user
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
-      const response = await api.post('/auth/login', credentials);
-      const { user, token } = response.data;
-      localStorage.setItem('token', token);
-      return { user, token };
+      const response = await api.post<LoginResponse>('/auth/login', credentials);
+      console.log("response", response.data);
+      const { user, accessToken, refreshToken } = response.data;
+      
+      // Store tokens
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
+      
+      return { user, token: accessToken };
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Login failed');
+      const errorMessage = error.response?.data?.message || 'Login failed';
+      return rejectWithValue(errorMessage);
     }
   }
 );
 
+// Register user
 export const registerUser = createAsyncThunk(
   'auth/register',
   async (credentials: RegisterCredentials, { rejectWithValue }) => {
     try {
-      const response = await api.post('/auth/register', credentials);
-      const { user, token } = response.data;
-      localStorage.setItem('token', token);
-      return { user, token };
+      const { confirmPassword, ...registerData } = credentials;
+      const response = await api.post('/auth/register', registerData);
+      
+      return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Registration failed');
+      const errorMessage = error.response?.data?.message || 'Registration failed';
+      return rejectWithValue(errorMessage);
     }
   }
 );
 
+// Get current user (if needed)
 export const getCurrentUser = createAsyncThunk(
   'auth/getCurrentUser',
   async (_, { rejectWithValue }) => {
@@ -47,19 +56,25 @@ export const getCurrentUser = createAsyncThunk(
       const response = await api.get('/auth/me');
       return response.data.user;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to get user');
+      const errorMessage = error.response?.data?.message || 'Failed to get user';
+      return rejectWithValue(errorMessage);
     }
   }
 );
 
-export const updateProfile = createAsyncThunk(
-  'auth/updateProfile',
-  async (userData: Partial<User>, { rejectWithValue }) => {
+// Logout user
+export const logoutUser = createAsyncThunk(
+  'auth/logout',
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await api.put('/auth/profile', userData);
-      return response.data.user;
+      await api.post('/auth/logout');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      return true;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Update failed');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      return true;
     }
   }
 );
@@ -73,7 +88,8 @@ const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
       state.error = null;
-      localStorage.removeItem('token');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
     },
     clearError: (state) => {
       state.error = null;
@@ -100,24 +116,22 @@ const authSlice = createSlice({
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
-        state.isAuthenticated = false;
+        // DON'T change isAuthenticated on login failure
+        // Only clear auth state if the user was previously authenticated
+        // and we get a 401 from the server
       })
       // Register cases
       .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(registerUser.fulfilled, (state, action) => {
+      .addCase(registerUser.fulfilled, (state) => {
         state.isLoading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.isAuthenticated = true;
         state.error = null;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
-        state.isAuthenticated = false;
       })
       // Get current user cases
       .addCase(getCurrentUser.pending, (state) => {
@@ -132,23 +146,20 @@ const authSlice = createSlice({
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+        // Only clear auth state if token is invalid
         state.isAuthenticated = false;
         state.token = null;
-        localStorage.removeItem('token');
+        state.user = null;
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
       })
-      // Update profile cases
-      .addCase(updateProfile.pending, (state) => {
-        state.isLoading = true;
+      // Logout cases
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
         state.error = null;
-      })
-      .addCase(updateProfile.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload;
-        state.error = null;
-      })
-      .addCase(updateProfile.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
       });
   },
 });
