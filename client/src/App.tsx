@@ -1,15 +1,15 @@
+// src/App.tsx
+import { Provider } from 'react-redux';
+import { store } from './store/store';
+import AuthExample from './components/AuthExample';
 
-import './App.css'
-import SamplePage from './pages/sample-page'
 
 function App() {
-
-
   return (
-    <>
-        <SamplePage />
-    </>
-  )
+    <Provider store={store}>
+      <AuthExample />
+    </Provider>
+  );
 }
 
-export default App
+export default App;

@@ -1,69 +1,59 @@
-# React + TypeScript + Vite
+# Skill Swap Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern web application that enables users to exchange skills through a community-driven platform. Built with React, TypeScript, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Core Features
+- **User Authentication**: Secure login and registration system
+- **Profile Management**: Create and customize user profiles with skills and availability
+- **Skill Discovery**: Browse and search for users by their offered skills
+- **Swap Requests**: Send, accept, or reject skill exchange requests
+- **Rating System**: Provide feedback after completed skill swaps
+- **Privacy Controls**: Make profiles public or private
+- **Admin Panel**: Content moderation and user management
 
-## Expanding the ESLint configuration
+### User Profile Features
+- Basic information (name, location, profile photo)
+- Skills offered and wanted lists
+- Availability scheduling (weekends, evenings, etc.)
+- Public/private profile toggle
+- Request management dashboard
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠️ Tech Stack
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS
+- **State Management**: Redux Toolkit
+- **HTTP Client**: Axios
+- **Routing**: React Router DOM
+- **UI Components**: Custom components with modern design
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## 🎨 Design System
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+```css
+Primary Color: #0A192F (Dark Navy)
+Accent Color: #64FFDA (Bright Teal)
+Background: #FFFFFF (White)
+Text Color: #333333 (Dark Gray)
+Font: Inter, sans-serif
+Style: Clean, minimal, professional
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 📁 Project Structure
+skill-swap/
+├── backend/                 # Backend API (separate)
+├── client/                  # Frontend React app
+│   ├── public/             # Static assets
+│   ├── src/
+│   │   ├── components/     # Reusable UI components
+│   │   ├── pages/          # Page components
+│   │   ├── store/          # Redux store and slices
+│   │   ├── hooks/          # Custom React hooks
+│   │   ├── types/          # TypeScript type definitions
+│   │   ├── utils/          # Utility functions and API config
+│   │   ├── App.tsx         # Main app component
+│   │   └── main.tsx        # App entry point
+│   ├── package.json
+│   └── vite.config.ts
+├── README.md
+└── .gitignore
