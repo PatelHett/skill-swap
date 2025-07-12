@@ -136,15 +136,15 @@ export const getSwapRequest = async (swapId: string): Promise<SwapRequest> => {
 
 // Mock swap requests for demonstration
 export const getMockSwapRequests = (): SwapRequest[] => {
-  return [
+  return [  
     {
       _id: '687235a1aea40ec25f8655',
       requesterId: '687235a1aea40ec25f8651',
       requester: {
         _id: '687235a1aea40ec25f8651',
-        username: 'John Smith',
+        username: 'testuser2',
         email: 'john.smith@example.com',
-        profilePhoto: 'https://randomuser.me/api/portraits/men/32.jpg',
+        profilePhoto: '',
         skillsOffered: [
           { _id: '1', name: 'JavaScript', category: 'Programming' },
           { _id: '2', name: 'React', category: 'Frontend' },
