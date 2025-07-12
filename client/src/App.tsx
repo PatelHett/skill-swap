@@ -29,34 +29,6 @@ const Dashboard = () => {
            Logout
          </button>
        </div>
-       
-       {/* Add more content to test scrolling */}
-       <div className="mt-16 space-y-8">
-         <div className="bg-gray-50 p-8 rounded-lg">
-           <h2 className="text-2xl font-bold text-[#0A192F] mb-4">Recent Activity</h2>
-           <p className="text-[#333333]">This is some sample content to test scrolling and footer visibility.</p>
-         </div>
-         
-         <div className="bg-gray-50 p-8 rounded-lg">
-           <h2 className="text-2xl font-bold text-[#0A192F] mb-4">Your Skills</h2>
-           <p className="text-[#333333]">Manage your skills and find people to swap with.</p>
-         </div>
-         
-         <div className="bg-gray-50 p-8 rounded-lg">
-           <h2 className="text-2xl font-bold text-[#0A192F] mb-4">Community</h2>
-           <p className="text-[#333333]">Connect with other members and share your expertise.</p>
-         </div>
-         
-         <div className="bg-gray-50 p-8 rounded-lg">
-           <h2 className="text-2xl font-bold text-[#0A192F] mb-4">Settings</h2>
-           <p className="text-[#333333]">Customize your profile and preferences.</p>
-         </div>
-         
-         <div className="bg-gray-50 p-8 rounded-lg">
-           <h2 className="text-2xl font-bold text-[#0A192F] mb-4">Help & Support</h2>
-           <p className="text-[#333333]">Get help with using the platform and find answers to common questions.</p>
-         </div>
-       </div>
      </div>
    </div>
  );
