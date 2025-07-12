@@ -117,6 +117,11 @@ const getAllUsers = asyncHandler(async (req, res, next) => {
             requestsReceived,
             completedSwaps,
           },
+          ratingStats: {
+            averageRating: userObj.averageRating,
+            totalReviews: userObj.totalReviews,
+            formattedRating: userObj.averageRating.toFixed(1),
+          },
         };
       })
     );
@@ -293,6 +298,11 @@ const searchUsers = asyncHandler(async (req, res, next) => {
             requestsReceived,
             completedSwaps,
           },
+          ratingStats: {
+            averageRating: userObj.averageRating,
+            totalReviews: userObj.totalReviews,
+            formattedRating: userObj.averageRating.toFixed(1),
+          },
         };
       })
     );
@@ -415,6 +425,11 @@ const getUserById = asyncHandler(async (req, res, next) => {
       offersMade: offersCount,
       requestsReceived: requestsCount,
       completedSwaps: completedCount,
+    };
+    userObj.ratingStats = {
+      averageRating: userObj.averageRating,
+      totalReviews: userObj.totalReviews,
+      formattedRating: userObj.averageRating?.toFixed(1) || "0.0",
     };
 
     return res.status(200).json({

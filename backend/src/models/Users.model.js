@@ -42,6 +42,18 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
     resetCode: String, // Added for password reset
+    // Rating fields
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+    totalReviews: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
   },
   { timestamps: true }
 );
