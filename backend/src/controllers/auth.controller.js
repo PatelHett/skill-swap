@@ -431,6 +431,85 @@ const toggleProfileVisibility = async (req, res, next) => {
   }
 };
 
+const getUserProfile = async (req, res, next) => {
+  log.info("getUserProfile endpoint hit");
+
+  try {
+    const { username } = req.params;
+
+    if (!username) {
+      log.warn("Missing username param");
+      return next(new ApiError(400, "Username is required"));
+    }
+
+    const user = await User.findOne({ username, isPublic: true })
+      .select("-password -resetCode -__v")
+      .populate("skillsOffered skillsWanted");
+
+    if (!user) {
+      log.warn(`Public profile not found for username: ${username}`);
+      return next(new ApiError(404, "Profile not found or is private"));
+    }
+
+    return res.status(200).json({
+      success: true,
+      profile: user,
+    });
+  } catch (error) {
+    log.error("Error in getUserProfile", error);
+    next(error);
+  }
+};
+
+const updateUserProfile = async (req, res, next) => {
+  log.info("updateUserProfile endpoint hit");
+
+  try {
+    const userId = req.user?._id;
+
+    if (!userId) {
+      log.warn("Missing user ID in request (unauthenticated)");
+      return next(new ApiError(401, "Unauthorized"));
+    }
+
+    const updates = req.body;
+
+    // Allowed fields only — ignore sensitive/internal
+    const allowedFields = [
+      "location",
+      "profilePhoto",
+      "skillsOffered",
+      "skillsWanted",
+      "availability",
+      "isPublic",
+    ];
+
+    const filteredUpdates = {};
+    for (const key of allowedFields) {
+      if (updates.hasOwnProperty(key)) {
+        filteredUpdates[key] = updates[key];
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: filteredUpdates },
+      { new: true }
+    )
+      .select("-password -resetCode -__v")
+      .populate("skillsOffered skillsWanted");
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      profile: updatedUser,
+    });
+  } catch (error) {
+    log.error("Error in updateUserProfile", error);
+    next(error);
+  }
+};
+
 export const auth = {
   registerUser,
   loginUser,
@@ -442,4 +521,6 @@ export const auth = {
   verifyResetCode,
   forgotUsername,
   toggleProfileVisibility,
+  getUserProfile,
+  updateUserProfile,
 };

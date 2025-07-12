@@ -18,4 +18,7 @@ authRouter.post(
   auth.toggleProfileVisibility
 );
 
+authRouter.get("/profile/:username", auth.getUserProfile);
+authRouter.put("/profile", verifyAccessToken, auth.updateUserProfile);
+
 export default authRouter;
