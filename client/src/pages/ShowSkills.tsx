@@ -18,39 +18,80 @@ const ShowSkills: React.FC = () => {
   const [filter, setFilter] = useState('');
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [users, setUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
 
-  const fetchUsers = async () => {
+  // Frontend filtering and search function
+  const filterAndSearchUsers = (
+    users: User[],
+    searchTerm: string,
+    availabilityFilter: string,
+    page: number = 1,
+    limit: number = 10
+  ): { filteredUsers: User[]; totalPages: number; total: number } => {
+    let filtered = [...users];
+
+    // Filter by search term (username or skills)
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(user => {
+        // Search in username
+        if (user.username.toLowerCase().includes(searchLower)) {
+          return true;
+        }
+        
+        // Search in skills offered
+        if (user?.skillsOffered?.some(skill => 
+          skill.name.toLowerCase().includes(searchLower)
+        )) {
+          return true;
+        }
+        
+        // Search in skills wanted
+        if (user?.skillsWanted?.some(skill => 
+          skill.name.toLowerCase().includes(searchLower)
+        )) {
+          return true;
+        }
+        
+        return false;
+      });
+    }
+
+    // Filter by availability
+    if (availabilityFilter) {
+      filtered = filtered.filter(user => 
+        user.availability === availabilityFilter
+      );
+    }
+
+    // Calculate pagination
+    const total = filtered.length;
+    const totalPages = Math.ceil(total / limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    
+    // Apply pagination
+    const paginatedUsers = filtered.slice(startIndex, endIndex);
+
+    return {
+      filteredUsers: paginatedUsers,
+      totalPages,
+      total
+    };
+  };
+
+  const fetchAllUsers = async () => {
     setLoading(true);
     setError(null);
     try {
-      const params: {
-        page?: number;
-        limit?: number;
-        search?: string;
-        availability?: string;
-      } = {
-        page: currentPage,
-        limit: 10,
-      };
-
-      if (search.trim()) {
-        params.search = search.trim();
-      }
-
-      if (filter) {
-        params.availability = filter;
-      }
-
-      const response = await getUsers(params);
-      console.log('response', response)
-      setUsers(response?.users);
-      setTotalPages(response.pagination.totalPages);
-      setTotal(response.pagination.total);
+      // Fetch all users from backend (no filtering parameters)
+      const response = await getUsers({ page: 1, limit: 20 }); // Get all users
+      setAllUsers(response.users);
     } catch (err) {
       setError('Failed to fetch users. Please try again.');
       console.error('Error fetching users:', err);
@@ -59,18 +100,26 @@ const ShowSkills: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, [currentPage, filter]);
+  const applyFiltersAndSearch = () => {
+    if (allUsers.length > 0) {
+      const result = filterAndSearchUsers(allUsers, search, filter, currentPage, 10);
+      setFilteredUsers(result.filteredUsers);
+      setTotalPages(result.totalPages);
+      setTotal(result.total);
+    }
+  };
 
+  // Fetch all users on component mount
   useEffect(() => {
-    // Debounce search to avoid too many API calls
-    const timeoutId = setTimeout(() => {
-      fetchUsers();
-    }, 500);
+    fetchAllUsers();
+  }, []);
 
-    return () => clearTimeout(timeoutId);
-  }, [search]);
+  // Apply filters and search when dependencies change
+  useEffect(() => {
+    if (allUsers.length > 0) {
+      applyFiltersAndSearch();
+    }
+  }, [allUsers, search, filter, currentPage]);
 
   const handleSearch = () => {
     setCurrentPage(1); // Reset to first page when searching
@@ -119,7 +168,7 @@ const ShowSkills: React.FC = () => {
         <div className="text-center py-12">
           <p className="text-red-600 mb-4">{error}</p>
           <button
-            onClick={fetchUsers}
+            onClick={fetchAllUsers}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Try Again
@@ -130,23 +179,23 @@ const ShowSkills: React.FC = () => {
       {/* Users List */}
       {!loading && !error && (
         <div>
-          {users.length === 0 ? (
+          {filteredUsers.length === 0 ? (
             <div className="text-center text-gray-500 py-12">
               {search || filter ? 'No users found matching your criteria.' : 'No users available.'}
             </div>
           ) : (
             <>
               <div className="mb-4 text-sm text-gray-600">
-                Showing {users.length} of {total} users
+                Showing {filteredUsers.length} of {total} users
               </div>
-              {users.map((user) => (
+              {filteredUsers.map((user: User) => (
                 <ShowSkillCard
                   key={user._id}
                   profilePhoto={user.profilePhoto || 'https://randomuser.me/api/portraits/lego/1.jpg'}
                   name={user.username}
                   rating={4.5} // TODO: Add rating system
-                  skillsOffered={user?.skillsOffered?.map(skill => skill.name)}
-                  skillWanted={user?.skillsWanted?.map(skill => skill.name).join(', ')}
+                  skillsOffered={user?.skillsOffered?.map((skill: any) => skill.name)}
+                  skillWanted={user?.skillsWanted?.map((skill: any) => skill.name).join(', ')}
                   onRequest={() => {
                     // TODO: Implement swap request functionality
                     console.log('Request swap with:', user.username);
