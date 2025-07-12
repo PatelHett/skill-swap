@@ -5,7 +5,7 @@ import { store } from './store/store';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { Toaster } from 'react-hot-toast';
-import Login from './components/auth/Login';
+
 import Register from './components/auth/Register';
 import ForgotPassword from './components/auth/ForgotPassword';
 import { useAppSelector } from './hooks/redux';
@@ -13,7 +13,8 @@ import './App.css';
 import Profile from './pages/Profile';
 import SwapRequestsPage from './pages/SwapRequestsPage';
 import ShowSkills from './pages/ShowSkills';
-import MonitorSwaps from './pages/admin/MonitorSwaps';
+import Login from './components/auth/Login';
+
 
 // Temporary Dashboard component for authenticated users
 const Dashboard = () => {
@@ -46,7 +47,7 @@ const AuthRoutes = () => {
    <Routes>
      <Route 
        path="/login" 
-       element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <ShowSkills />} 
+       element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} 
      />
      <Route 
        path="/register" 
