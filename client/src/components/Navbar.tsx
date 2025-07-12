@@ -64,6 +64,7 @@ const Navbar: React.FC = () => {
             {/* Profile Section - Only show if logged in */}
             {isLoggedIn ? (
               <div className="hidden md:flex md:items-center md:space-x-4">
+                <Link to="/profile">
                 <div className="relative">
                   <div className="flex items-center space-x-3">
                     <img
@@ -74,6 +75,7 @@ const Navbar: React.FC = () => {
                     <span className="text-sm font-medium text-gray-700">John Doe</span>
                   </div>
                 </div>
+                </Link>
               </div>
             ) : (
               /* Login Button - Only show if not logged in */

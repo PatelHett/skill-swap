@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 interface ButtonProps {
   children: React.ReactNode;
@@ -21,7 +22,6 @@ const Button: React.FC<ButtonProps> = ({
   type = 'button',
   className = '',
   to,
-  href,
 }) => {
   const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200';
   
@@ -42,11 +42,11 @@ const Button: React.FC<ButtonProps> = ({
 
   const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabledClasses} ${className}`;
 
-  if (href) {
+  if (to) {
     return (
-      <a href={href} className={classes}>
+      <Link to={to} className={classes}>
         {children}
-      </a>
+      </Link>
     );
   }
 
