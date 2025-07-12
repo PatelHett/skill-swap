@@ -53,28 +53,33 @@ const Dashboard = () => {
 const AuthRoutes = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
 
-  return (
-    <Routes>
-      {/* Public routes */}
-      <Route 
-        path="/login" 
-        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} 
-      />
-      <Route 
-        path="/register" 
-        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />} 
-      />
-      <Route 
-        path="/forgot-password" 
-        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <ForgotPassword />} 
-      />
-      
-      {/* Protected routes */}
-      <Route 
-        path="/dashboard" 
-        element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />} 
-      />
-      <Route 
+ return (
+   <Routes>
+     <Route 
+       path="/login" 
+       element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <ShowSkills />} 
+     />
+     <Route 
+       path="/register" 
+       element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />} 
+     />
+     <Route 
+       path="/forgot-password" 
+       element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <ForgotPassword />} 
+     />
+     <Route 
+       path="/dashboard" 
+       element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />} 
+     />
+     <Route 
+       path="/" 
+       element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} 
+     />
+     <Route 
+       path="*" 
+       element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} 
+     />
+     <Route 
         path="/profile" 
         element={isAuthenticated ? <Profile /> : <Navigate to="/login" replace />} 
       />
