@@ -29,8 +29,8 @@ const Navbar: React.FC = () => {
 
   const navigation: NavLink[] = [
     { name: 'Dashboard', href: '/dashboard', current: location.pathname === '/dashboard', type: 'link' },
-    { name: 'Browse Skills', href: '/browse', current: location.pathname === '/browse', type: 'link' },
-    { name: 'My Requests', href: '/requests', current: location.pathname === '/requests', type: 'link' },
+    { name: 'Browse Skills', href: '/browse-skills', current: location.pathname === '/browse-skills', type: 'link' },
+    { name: 'My Requests', href: '/swap-request', current: location.pathname === '/swap-request', type: 'link' },
     { name: 'Profile', href: '/profile', current: location.pathname === '/profile', type: 'link' },
   ];
 
@@ -134,7 +134,7 @@ const Navbar: React.FC = () => {
 
                   {/* Profile Dropdown */}
                   {isProfileDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1  ring-opacity-5 focus:outline-none">
                       <Link
                         to="/profile"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"

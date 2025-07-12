@@ -37,8 +37,7 @@ export const registerUser = createAsyncThunk(
   'auth/register',
   async (credentials: RegisterCredentials, { rejectWithValue }) => {
     try {
-      const { confirmPassword, ...registerData } = credentials;
-      const response = await api.post('/auth/register', registerData);
+      const response = await api.post('/auth/register', credentials);
       
       return response.data;
     } catch (error: any) {
@@ -75,6 +74,19 @@ export const logoutUser = createAsyncThunk(
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       return true;
+    }
+  }
+);
+
+export const updateProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (userData: Partial<User>, { rejectWithValue }) => {
+    try {
+      const response = await api.put('/auth/profile', userData);
+      return response.data.user;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Update failed';
+      return rejectWithValue(errorMessage);
     }
   }
 );
