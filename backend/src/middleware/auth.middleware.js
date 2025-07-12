@@ -4,10 +4,19 @@ import { ApiError, log } from "../utils/util.js";
 const verifyAccessToken = (req, res, next) => {
   log.info("verifyAccessToken middleware hit");
 
-  const token = req.cookies?.accessToken;
+  // Check for token in cookies first, then in Authorization header
+  let token = req.cookies?.accessToken;
 
   if (!token) {
-    log.warn("Access token missing from cookies");
+    // Check Authorization header for Bearer token
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    }
+  }
+
+  if (!token) {
+    log.warn("Access token missing from cookies and Authorization header");
     return next(new ApiError(401, "Access token missing. Please login."));
   }
 

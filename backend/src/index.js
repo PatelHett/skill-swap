@@ -5,7 +5,7 @@ import cors from "cors";
 import helmet from "helmet";
 import connectDb from "./db/index.js";
 import { errorHandler } from "./utils/util.js";
-import { authRouter } from "./routes/router.js";
+import { authRouter, skillsRouter } from "./routes/router.js";
 dotenv.config();
 
 const app = express();
@@ -18,6 +18,7 @@ app.use(helmet());
 
 //routes middleware
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/skills", skillsRouter);
 
 //error handler for requests
 app.use(errorHandler);
