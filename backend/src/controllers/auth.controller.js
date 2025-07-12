@@ -85,14 +85,18 @@ const loginUser = async (req, res, next) => {
       return next(new ApiError(400, "Request body is missing or invalid"));
     }
 
-    const { email, password } = req.body;
+    const { error } = userValidationSchema.validate(req.body);
 
-    if (!email || !password) {
-      log.warn("Missing email or password in loginUser");
-      return next(new ApiError(400, "Email and password are required"));
+    if (error) {
+      log.warn("Validation error while logging user in:", error.details);
+      return next(new ApiError(400, error.details[0].message));
     }
 
-    const user = await User.findOne({ email });
+    const { email, password, username } = req.body;
+
+    const user = await User.findOne({
+      $or: [{ email }, { username }],
+    });
 
     if (!user) {
       log.warn(`No user found with email ${email}`);
