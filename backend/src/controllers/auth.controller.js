@@ -1,6 +1,39 @@
 import { log, ApiError, getCookieOptions } from "../utils/util.js";
 import { User, RefreshToken } from "../models/model.js";
+import { userValidationSchema } from "../validators/validators.js";
 import jwt from "jsonwebtoken";
+
+const checkUsername = async (req, res, next) => {
+  log.info("checkUsername endpoint hit");
+
+  try {
+    const { username } = req.query;
+
+    if (!username || typeof username !== "string") {
+      log.warn("Username not provided or invalid in query");
+      return next(new ApiError(400, "Username query param is required"));
+    }
+
+    const user = await User.findOne({ username });
+
+    if (user) {
+      log.info(`Username ${username} is already taken`);
+      return res.status(200).json({
+        available: false,
+        message: "Username is already taken",
+      });
+    }
+
+    log.info(`Username ${username} is available`);
+    return res.status(200).json({
+      available: true,
+      message: "Username is available",
+    });
+  } catch (error) {
+    log.error("Unexpected error in checkUsername", error);
+    next(error);
+  }
+};
 
 const registerUser = async (req, res, next) => {
   log.info("registerUser endpoint hit");
@@ -11,12 +44,14 @@ const registerUser = async (req, res, next) => {
       return next(new ApiError(400, "Request body is missing or invalid"));
     }
 
-    const { email, password } = req.body;
+    const { error } = userValidationSchema.validate(req.body);
 
-    if (!email || !password) {
-      log.warn("Missing email or password in registerUser");
-      return next(new ApiError(400, "Email and password are required"));
+    if (error) {
+      log.warn("Validation error while registering user:", error.details);
+      return next(new ApiError(400, error.details[0].message));
     }
+
+    const { email, password, username } = req.body;
 
     const userExists = await User.findOne({ email });
 
@@ -25,13 +60,15 @@ const registerUser = async (req, res, next) => {
       return next(new ApiError(400, "User already exists. Please login."));
     }
 
-    const user = new User({ email, password });
+    const user = new User({ email, password, username });
 
     await user.save();
 
     return res.status(201).json({
       success: true,
       message: "User registered successfully",
+      email: user.email,
+      username: user.username,
     });
   } catch (error) {
     log.error("Unexpected error in registerUser", error);
@@ -177,9 +214,18 @@ const logoutUser = async (req, res, next) => {
     });
 };
 
+const forgotPassword = async (req, res, next) => {
+  try {
+  } catch (error) {
+    log.error("Unexpected error in forgot password", error);
+    next(error);
+  }
+};
+
 export const auth = {
   registerUser,
   loginUser,
   refreshAccessToken,
   logoutUser,
+  checkUsername,
 };
