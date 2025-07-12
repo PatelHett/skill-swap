@@ -2,6 +2,7 @@
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { store } from './store/store';
+import Navbar from './components/Navbar';
 import { Toaster } from 'react-hot-toast';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
@@ -90,6 +91,7 @@ function App() {
            },
          }}
        />
+       <Navbar />
        <AuthRoutes />
      </Router>
    </Provider>
