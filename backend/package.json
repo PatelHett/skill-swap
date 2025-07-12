@@ -6,8 +6,10 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start":"node src/index.js",
-    "dev":"nodemon src/index.js"
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "seed:skills": "node src/scripts/seedSkills.js",
+    "create:admin": "node src/scripts/createAdmin.js"
   },
   "author": "",
   "license": "ISC",
@@ -21,6 +23,7 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.2",
+    "nodemailer": "^7.0.5",
     "winston": "^3.17.0"
   },
   "devDependencies": {

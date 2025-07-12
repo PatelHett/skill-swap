@@ -4,6 +4,11 @@ import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema(
   {
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     email: {
       type: String,
       required: true,
@@ -14,6 +19,29 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "password is required"],
     },
+    location: String,
+    profilePhoto: String,
+    skillsOffered: [{ type: mongoose.Schema.Types.ObjectId, ref: "Skill" }],
+    skillsWanted: [{ type: mongoose.Schema.Types.ObjectId, ref: "Skill" }],
+    availability: {
+      type: String,
+      enum: ["weekends", "weekdays", "evenings", "custom"],
+      default: "weekends",
+    },
+    isPublic: {
+      type: Boolean,
+      default: true,
+    },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+    banned: {
+      type: Boolean,
+      default: false,
+    },
+    resetCode: String, // Added for password reset
   },
   { timestamps: true }
 );
@@ -39,6 +67,7 @@ userSchema.methods.generateAccessToken = async function () {
     {
       _id: this._id,
       email: this.email,
+      role: this.role,
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
