@@ -7,5 +7,8 @@ authRouter.post("/register", auth.registerUser);
 authRouter.post("/login", auth.loginUser);
 authRouter.post("/refresh", auth.refreshAccessToken);
 authRouter.post("/logout", auth.logoutUser);
+authRouter.post("/verify-reset-code", auth.verifyResetCode);
+authRouter.post("/reset-password", auth.resetPassword);
+authRouter.post("/forgot-username", auth.forgotUsername);
 
 export default authRouter;
