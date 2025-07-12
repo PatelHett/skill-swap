@@ -5,7 +5,7 @@ import cors from "cors";
 import helmet from "helmet";
 import connectDb from "./db/index.js";
 import { errorHandler } from "./utils/util.js";
-import { authRouter, skillsRouter, swapRouter } from "./routes/router.js";
+import { authRouter, skillsRouter, swapRouter, usersRouter } from "./routes/router.js";
 dotenv.config();
 
 const app = express();
@@ -20,6 +20,7 @@ app.use(helmet());
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/skills", skillsRouter);
 app.use("/api/v1/swaps", swapRouter);
+app.use("/api/v1/users", usersRouter);
 
 //error handler for requests
 app.use(errorHandler);
