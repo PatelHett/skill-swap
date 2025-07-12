@@ -20,5 +20,6 @@ authRouter.post(
 
 authRouter.get("/profile/:username", auth.getUserProfile);
 authRouter.put("/profile", verifyAccessToken, auth.updateUserProfile);
+authRouter.get("/me", verifyAccessToken, auth.getCurrentUser);
 
 export default authRouter;

@@ -158,12 +158,16 @@ const authSlice = createSlice({
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
-        // Only clear auth state if token is invalid
-        state.isAuthenticated = false;
-        state.token = null;
-        state.user = null;
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        
+        // Only clear auth state if it's a 401 error (token invalid)
+        // Don't clear on network errors or other issues
+        if (typeof action.payload === 'string' && (action.payload === 'Unauthorized' || action.payload.includes('401'))) {
+          state.isAuthenticated = false;
+          state.token = null;
+          state.user = null;
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+        }
       })
       // Logout cases
       .addCase(logoutUser.fulfilled, (state) => {
